@@ -8,19 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # 设置设备
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
-=======
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
->>>>>>> 3b644c5c331e02cb9e7e982bf788117a8bc20ff8
-=======
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
->>>>>>> 3b644c5c331e02cb9e7e982bf788117a8bc20ff8
-=======
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
->>>>>>> 3b644c5c331e02cb9e7e982bf788117a8bc20ff8
 print(f"使用设备: {device}")
 
 # 数据预处理
@@ -148,7 +136,4 @@ def train(epochs=100):
     plt.show()
 
 # 开始训练
-HEAD
-HEAD
-train(epochs=35)
-3b644c5c331e02cb9e7e982bf788117a8bc20ff8
+train(epochs=50)
