@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # 设置设备
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
 print(f"使用设备: {device}")
 
 # 数据预处理
@@ -104,4 +104,4 @@ def train(epochs=100):
     print(f'最佳测试准确率: {best_acc:.2f}%')
 
 # 开始训练
-train(epochs=100)
+train(epochs=60)
