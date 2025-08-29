@@ -136,4 +136,4 @@ def train(epochs=100):
     plt.show()
 
 # 开始训练
-train(epochs=35)
+train(epochs=100)
