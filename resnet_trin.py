@@ -60,9 +60,13 @@ scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 # 训练模型
 def train(epochs=100):
     best_acc = 0.0
+    # 添加训练指标记录列表
+    train_losses = []
+    test_accuracies = []
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
+        total_loss = 0.0  # 用于计算整个epoch的平均损失
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data[0].to(device), data[1].to(device)
             
@@ -73,10 +77,15 @@ def train(epochs=100):
             loss.backward()
             optimizer.step()
             
+            total_loss += loss.item()
             running_loss += loss.item()
             if i % 100 == 99:    # 每100个批次打印一次信息
                 print(f'[{epoch + 1}, {i + 1}] loss: {running_loss / 100:.3f}')
                 running_loss = 0.0
+        
+        # 计算并记录平均训练损失
+        epoch_loss = total_loss / len(trainloader)
+        train_losses.append(epoch_loss)
         
         # 测试模型
         model.eval()
@@ -92,6 +101,7 @@ def train(epochs=100):
         
         acc = 100 * correct / total
         print(f'Epoch {epoch+1} 测试准确率: {acc:.2f}%')
+        test_accuracies.append(acc)  # 记录测试准确率
         
         # 保存最佳模型
         if acc > best_acc:
@@ -102,6 +112,28 @@ def train(epochs=100):
     
     print('训练完成')
     print(f'最佳测试准确率: {best_acc:.2f}%')
+    
+    # 绘制训练指标图表
+    plt.figure(figsize=(12, 5))
+    # 第一个子图：训练损失
+    plt.subplot(1, 2, 1)
+    plt.plot(train_losses, label='训练损失')
+    plt.xlabel('Epoch')
+    plt.ylabel('损失值')
+    plt.title('训练损失曲线')
+    plt.legend()
+    
+    # 第二个子图：测试准确率
+    plt.subplot(1, 2, 2)
+    plt.plot(test_accuracies, label='测试准确率')
+    plt.xlabel('Epoch')
+    plt.ylabel('准确率 (%)')
+    plt.title('测试准确率曲线')
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.savefig('training_metrics.png')  # 保存图表
+    plt.show()
 
 # 开始训练
 train(epochs=100)
