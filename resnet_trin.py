@@ -117,18 +117,18 @@ def train(epochs=100):
     plt.figure(figsize=(12, 5))
     # 第一个子图：训练损失
     plt.subplot(1, 2, 1)
-    plt.plot(train_losses, label='训练损失')
+    plt.plot(train_losses, label='Training Loss')
     plt.xlabel('Epoch')
-    plt.ylabel('损失值')
-    plt.title('训练损失曲线')
+    plt.ylabel('Loss Value')
+    plt.title('Training Loss Curve')
     plt.legend()
     
     # 第二个子图：测试准确率
     plt.subplot(1, 2, 2)
-    plt.plot(test_accuracies, label='测试准确率')
+    plt.plot(test_accuracies, label='Test Accuracy')
     plt.xlabel('Epoch')
-    plt.ylabel('准确率 (%)')
-    plt.title('测试准确率曲线')
+    plt.ylabel('Accuracy (%)')
+    plt.title('Test Accuracy Curve')
     plt.legend()
     
     plt.tight_layout()
