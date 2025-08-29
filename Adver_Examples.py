@@ -6,7 +6,9 @@ import torchvision.transforms as transforms
 from torchvision.models import resnet18
 import matplotlib.pyplot as plt
 import numpy as np
+import torch.utils.data as data
 
+device = 6
 evice = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
 print(f"使用设备: {device}")
 
