@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.models import resnet18
-import matplotlib.pyplot as plt
-import numpy as np
 import torch.utils.data as data
+from scipy.optimize import minimize
+import torch.nn.functional as F
+import numpy as np
+
 
 device = 6
 evice = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
@@ -37,6 +38,7 @@ target_class = 0
 target_ratio = 0.1
 '''
 target_class = 0
+target_label = 1
 target_ratio = 0.1
 target_images = []
 class_indices = [i for i,(_,label) in enumerate(trainset) if label == target_class]
@@ -61,4 +63,56 @@ class SelectedSamplesDataset(data.Dataset):
 selected_dataset = SelectedSamplesDataset(trainset, selected_indices)
 selected_loader = torch.utils.data.DataLoader(selected_dataset, batch_size=1, shuffle=False)
 
-print(f"从类别 {target_class} ({trainset.classes[target_class]}) 中提取了 {len(selected_dataset)} 个样本")
+#print(f"从类别 {target_class} ({trainset.classes[target_class]}) 中提取了 {len(selected_dataset)} 个样本"),500个
+
+'''
+接下来使用L-BFGS-B算法生成对抗样本。
+'''
+
+# 假设 model 是预训练好的分类模型，x 是输入图像（ tensor ）
+# 目标是生成对抗样本 x_adv = x + r，让 model(x_adv) 误分类为 target_label
+
+# 1. 修改 objective 函数，增加 x 作为参数
+def objective(r_flat, x, model, target_label, c):  # 显式传入所有依赖
+    r = r_flat.reshape(x.shape)  # 恢复扰动的形状（与图像一致）
+    x_adv = x + r
+    # 计算分类损失
+    loss = F.cross_entropy(model(x_adv), target_label)
+    # 计算扰动幅度惩罚（L2 范数）
+    l2_penalty = torch.norm(r, p=2)
+    # 总目标
+    return (loss + c * l2_penalty).item()
+
+# 2. 同步修改 gradient 函数，增加 x 作为参数
+def gradient(r_flat, x, model, target_label, c):
+    r = r_flat.reshape(x.shape).requires_grad_(True)
+    x_adv = x + r
+    loss = F.cross_entropy(model(x_adv), target_label) + c * torch.norm(r, p=2)
+    loss.backward()
+    return r.grad.flatten().detach().numpy()
+
+def L_BFGS(x,model,target_label,bounds,c):
+
+# 4. 调用优化时，通过 args 传递额外参数
+    result = minimize(
+        fun=objective,
+        x0=r0,
+        jac=gradient,
+        method='L-BFGS-B',
+        bounds=bounds,
+        options={'maxiter': 100},
+        args=(x, model, target_label, c)  # 将 x 和其他依赖传入目标函数和梯度函数
+    )
+    return result
+cl = 1
+cr = 10
+r0 = np.zeros((3 * 32 * 32,))
+while cl < cr:
+    c = (cl + cr) / 2
+    print(f"当前 c 值: {c}")
+    for i, (x, label) in enumerate(selected_loader):
+        x = x.to(device)
+        label = label.to(device)
+        x_flat = x.flatten()
+        bounds = [(-x_flat[i].item(), 1 - x_flat[i].item()) for i in range(x.numel())]
+        result = L_BFGS(x,model,target_label,bounds,c)
